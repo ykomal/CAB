@@ -126,7 +126,6 @@ int main(){
 						send(nsfd,lid,100,0);
 						recv(nsfd,llid,100,0);
 						l = atoi(llid);
-						
 						send(nsfd,pswd,100,0);
 						recv(nsfd,ppswd,100,0);
 						if(m[l]==string(ppswd)){
@@ -175,6 +174,7 @@ int main(){
 				if(fl==1){
 					close(nsfd);
 					send(ssfd,cl,100,0);
+					send(ssfd,llid,100,0);
 					break;
 				}
 			}

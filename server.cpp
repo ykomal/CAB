@@ -37,39 +37,6 @@ int create_socket(int port){
 int main(){
 
 	struct sockaddr_in server,client;
-	fstream d,cus;
-	d.open("driver.txt",ios::in|ios::out);
-	cus.open("customer.txt",ios::in|ios::out);
-
-	while(!d.eof()){
-		string s;
-		getline(d,s,'\n');
-		for(int i=0;i<s.length();i++){
-			if(s[i]=='$'){
-				string k = s.substr(0,i);
-				int k1 = stoi(k,nullptr,10);
-				driver_sfds[drv++] = create_socket(k1);
-				break;
-			}
-		}
-	}
-	
-	while(!cus.eof()){
-		string s;
-		getline(cus,s,'\n');
-		for(int i=0;i<s.length();i++){
-			if(s[i]=='$'){
-				string k = s.substr(0,i);
-				int k1 = stoi(k,nullptr,10);
-				cus_sfds[cs++] = create_socket(k1);
-				break;
-			}
-		}
-	}
-	
-	d.close();
-	cus.close();
-	
 	int sfd = create_socket(5001);
 	
 	char str[100];
@@ -85,6 +52,13 @@ int main(){
 		if(pid==0){
 			close(sfd);
 			recv(nsfd,str,100,0);
+			printf("Client : %s\n",str);
+			recv(nsfd,str,100,0);
+			printf("Client : %s\n",str);
+			int k = atoi(str);
+			int ssfd = create_socket(k);
+			int nsfd1 = accept(ssfd,(struct sockaddr*)&client,&sock_in);
+			recv(nsfd1,str,100,0);
 			printf("Client : %s\n",str);
 			break;
 		}

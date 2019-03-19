@@ -23,7 +23,6 @@ int main(){
     server.sin_addr = *((struct in_addr *)host->h_addr);
 	server.sin_port = htons( 5000 ); //login-port
 	
-	host = gethostbyname("127.0.0.1");
 	server_addr.sin_family = AF_INET;     
     server_addr.sin_addr = *((struct in_addr *)host->h_addr);
 	
@@ -32,9 +31,10 @@ int main(){
 	connect(sfd,(struct sockaddr*)&server,sizeof(struct sockaddr));	
 	
 	while(1){
-		
+		char b1[100];
 		recv(sfd,buf,100,0);
 		printf("%s",buf);
+		strcpy(b1,buf);
 		if(strcmp(buf,"Success ")==0){
 			printf("Logged in..");
 			close(sfd);
@@ -49,19 +49,19 @@ int main(){
 			break;
 		}
 		scanf("%s",buf);
-		if(strcmp(buf,"Login id : ")==0){
+		if(strcmp(b1,"Login id : ")==0){
 			int lid = atoi(buf);
+			printf("Port created for .. %d",lid);
+			fflush(stdout);
 			server_addr.sin_port = htons(lid);
 		}
 		send(sfd,buf,100,0);
-		
 	}
 	
 	int ssfd = socket(AF_INET, SOCK_STREAM, 0);
-	bzero(&(server_addr.sin_zero),8); 
 	connect(ssfd,(struct sockaddr*)&server_addr,sizeof(struct sockaddr));	
 	send(ssfd,hello,100,0);
-			
+	//printf("%s",hello);
 	return 0;
 }
 	
