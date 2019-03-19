@@ -4,12 +4,13 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/shm.h>
 #include <string.h>
 #include<bits/stdc++.h>
-
 using namespace std;
 
 int main(){
@@ -56,19 +57,36 @@ int main(){
 	
 	int sfd = socket(AF_INET,SOCK_STREAM,0);
 	
-	setsockopt(sfd,SOL_SOCKET,SO_REUSEADDR,&True,sizeof(int));
+	setsockopt(sfd,SOL_SOCKET,SO_REUSEADDR|SO_REUSEPORT,&True,sizeof(int));
 	
 	server.sin_family = AF_INET;         
-	server.sin_port = htons(5000);     
+	server.sin_port = htons(5000);   //login-port  
 	server.sin_addr.s_addr = INADDR_ANY; 
 	bzero(&(server.sin_zero),8); 
 	
-	bind(sfd,(struct sockaddr*)&server,sizeof(struct sockaddr));
+	if (bind(sfd, (struct sockaddr *)&server, sizeof(server))<0) 
+	{ 
+		perror("bind failed"); 
+		exit(EXIT_FAILURE); 
+	} 
 	
 	listen(sfd,5);
 	char lid[100]="Login id : ",llid[100],pswd[100] = "Password : ",ppswd[100],suc[100] = "Success ",
 						fail[100] = "Failure ... Retry",ses[100] = "Session timed out..";
 	int c=0;
+	
+	// Login acts as a client to the server 
+	struct sockaddr_in server_addr;
+	struct hostent *host;
+	host = gethostbyname("127.0.0.1");
+	server_addr.sin_family = AF_INET;     
+    server_addr.sin_addr = *((struct in_addr *)host->h_addr);
+	server_addr.sin_port = htons( 5001 ); //server-port
+	int ssfd = socket(AF_INET, SOCK_STREAM, 0);
+    bzero(&(server.sin_zero),8); 
+	connect(ssfd,(struct sockaddr*)&server_addr,sizeof(struct sockaddr));
+	//send(ssfd,suc,100,0);
+	
 	while(1){
 		
 		socklen_t sock_in = sizeof(struct sockaddr_in);
@@ -81,7 +99,7 @@ int main(){
 			close(sfd);
 			while(1){
 			
-				char str1[100];
+				char str1[100],cl[100];
 				char str2[] = "Enter choice .. \n 1. Driver \n 2. Customer ";
 				send(nsfd,str2,100,0);
 				recv(nsfd,str2,100,0);
@@ -90,10 +108,12 @@ int main(){
 				if(ch1==1){
 					strcpy(str1,"driver.txt");
 					m = driver;
+					strcpy(cl,"driver");
 				}
 				else{
 					strcpy(str1,"customer.txt");
 					m  = customer;
+					strcpy(cl,"customer");
 				}
 				
 				char str[] = "Enter choice .. \n 1. Login \n 2. Register ";
@@ -154,6 +174,7 @@ int main(){
 				}
 				if(fl==1){
 					close(nsfd);
+					send(ssfd,cl,100,0);
 					break;
 				}
 			}
